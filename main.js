@@ -1,6 +1,48 @@
 // selectors
 const btnWrapper = document.querySelector("#btn-wrapper");
 const usersWrapper = document.querySelector("#user-wrapper");
+const searchForm = document.querySelector("#search-form");
+const searchInput = document.querySelector("#search-input");
+let debounceTimer;
+
+function getQueryParamsAsObject() {
+  let params = new URL(document.location).searchParams;
+  return Object.fromEntries(params);
+}
+
+function generateUpdatedURL(paramObj) {
+  const { area: newArea, search: newSearch } = paramObj;
+  const { area: originalArea, search: originalSearch } =
+    getQueryParamsAsObject();
+
+  const area = newArea ? newArea : originalArea;
+  let search;
+
+  switch (newSearch) {
+    case "":
+      search = undefined;
+      break;
+    case undefined:
+      search = originalSearch;
+      break;
+    default:
+      search = newSearch;
+      break;
+  }
+
+  const newParamsObj = {};
+  if (area) {
+    newParamsObj.area = area;
+  }
+  if (search) {
+    newParamsObj.search = search;
+  }
+
+  const newURL = new URL(location.origin);
+  const searchParams = new URLSearchParams(newParamsObj);
+  // return an updated url with the new params
+  return `${newURL}?${searchParams.toString()}`;
+}
 
 function generateCardHTML(data) {
   const fullName = `${data.name.first} ${data.name.last}`;
@@ -30,6 +72,11 @@ function clearAllPressed() {
     .forEach((b) => b.removeAttribute("aria-pressed"));
 }
 
+function generateFilterButton(area) {
+  return `<button class="btn" data-area="${area}">${area}</button>`;
+}
+
+// event listeners
 btnWrapper.addEventListener("click", (e) => {
   if (e.target.dataset.area) {
     // clear all aria-pressed
@@ -40,16 +87,16 @@ btnWrapper.addEventListener("click", (e) => {
   }
 
   // update the query param
+  const updatedURL = generateUpdatedURL({ area: e.target.dataset.area });
+  window.location = updatedURL;
 });
 
-function generateFilterButton(area) {
-  return `<button class="btn" data-area="${area}">${area}</button>`;
-}
-
-// event listeners
 window.addEventListener("DOMContentLoaded", async () => {
-  let params = new URL(document.location).searchParams;
-  let { area, search } = Object.fromEntries(params);
+  const { area, search } = getQueryParamsAsObject();
+
+  if (search) {
+    searchInput.value = search;
+  }
 
   try {
     // fetch data
@@ -65,6 +112,17 @@ window.addEventListener("DOMContentLoaded", async () => {
     const btnHTML = areas.map(generateFilterButton);
     btnWrapper.insertAdjacentHTML("beforeend", btnHTML.join(""));
 
+    // update the aria-pressed attribute
+    clearAllPressed();
+    const btnToPress = btnWrapper.querySelector(`[data-area="${area}"]`);
+    if (btnToPress) {
+      btnToPress.setAttribute("aria-pressed", "true");
+    } else {
+      btnWrapper
+        .querySelector(`[data-area="All"]`)
+        .setAttribute("aria-pressed", "true");
+    }
+
     // fill the cards
     let cardHTML;
     if (area === "All" || !area) {
@@ -72,8 +130,26 @@ window.addEventListener("DOMContentLoaded", async () => {
     } else {
       cardHTML = data.filter((p) => p.area === area).map(generateCardHTML);
     }
+
+    if (search) {
+      cardHTML = cardHTML.filter((card) =>
+        card.toLowerCase().includes(search.toLowerCase())
+      );
+    }
     usersWrapper.insertAdjacentHTML("beforeend", cardHTML.join(""));
   } catch (e) {
     console.error(e.message);
   }
+});
+
+searchInput.addEventListener("input", (e) => {
+  clearTimeout(debounceTimer);
+  // 500ms debounce
+  debounceTimer = setTimeout(
+    () =>
+      (window.location = generateUpdatedURL({
+        search: searchInput.value,
+      })),
+    500
+  );
 });
