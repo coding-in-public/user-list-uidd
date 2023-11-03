@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Vite App</title>
+  </head>
+  <body>
+    <main>
+      <section aria-labelledby="users">
+        <div class="top flex--lg">
+          <div class="grid--sm">
+            <h2 id="users">Users</h2>
+            <form id="search-form" class="search-form">
+              <svg
+                width="25"
+                height="25"
+                viewBox="0 0 256 256"
+                xmlns="http://www.w3.org/2000/svg"
+                class="search-icon"
+              >
+                <path
+                  fill="currentColor"
+                  d="M232.49 215.51L185 168a92.12 92.12 0 1 0-17 17l47.53 47.54a12 12 0 0 0 17-17ZM44 112a68 68 0 1 1 68 68a68.07 68.07 0 0 1-68-68Z"
+                />
+              </svg>
+              <input
+                type="search"
+                name="search"
+                id="search"
+                class="search-input"
+                aria-label="Search for user"
+                placeholder="Search users"
+              />
+            </form>
+          </div>
+          <div class="flex--xs flex-wrap" id="btn-wrapper">
+            <button class="btn" aria-pressed="true" data-area="All">All</button>
+          </div>
+        </div>
+        <div class="card-wrapper" id="user-wrapper"></div>
+      </section>
+    </main>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
